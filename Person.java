@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 class Person {
     private String name;
@@ -27,10 +26,10 @@ class Person {
 }
 
 public class PersonSearch {
-    public static void main(String[] args) {
-        List<Person> persons = new ArrayList<>();
-        Scanner scanner = new Scanner(System.in);
+    private static final List<Person> persons = new ArrayList<>();
 
+    public static void main(String[] args) {
+        // Adding sample data
         persons.add(new Person("Vamsi", "Dallas", 26));
         persons.add(new Person("Ajay p", "Arkansas", 24));
         persons.add(new Person("Pavan", "Wichita", 18));
@@ -40,19 +39,42 @@ public class PersonSearch {
         persons.add(new Person("Naveen", "Huston", 27));
         persons.add(new Person("Mani", "New York", 25));
 
-        System.out.print("Search for name or location: ");
-        String filter = scanner.nextLine().toUpperCase();
+        // Start the web server
+        startServer();
+    }
 
-        System.out.println("Search results:");
-        for (Person person : persons) {
-            if (person.getName().toUpperCase().contains(filter) ||
-                person.getLocation().toUpperCase().contains(filter)) {
-                System.out.println("Name: " + person.getName() +
-                                   ", Location: " + person.getLocation() +
-                                   ", Age: " + person.getAge());
-            }
+    private static void startServer() {
+        // Create a simple HTTP server
+        com.sun.net.httpserver.HttpServer server;
+        try {
+            server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress(8000), 0);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
         }
 
-        scanner.close();
+        // Add a context for the search page
+        server.createContext("/search", new SearchHandler());
+
+        // Set up the executor
+        server.setExecutor(java.util.concurrent.Executors.newFixedThreadPool(10));
+
+        // Start the server
+        server.start();
+    }
+
+    // Handler for the search page
+    static class SearchHandler implements com.sun.net.httpserver.HttpHandler {
+        @Override
+        public void handle(com.sun.net.httpserver.HttpExchange t) throws java.io.IOException {
+            // Read the HTML file into a string
+            java.nio.file.Path path = java.nio.file.Paths.get("search.html");
+            String html = new String(java.nio.file.Files.readAllBytes(path), java.nio.charset.StandardCharsets.UTF_8);
+
+            // Send the HTML response
+            t.sendResponseHeaders(200, html.length());
+            java.io.OutputStream os = t.getResponseBody();
+            os.write(html.getBytes());
+            os.close();
+        }
     }
 }
