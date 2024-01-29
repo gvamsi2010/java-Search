@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Person Search</title>
+</head>
+<body>
+    <h2>Person Search</h2>
+    <label for="searchInput">Search for name or location:</label>
+    <input type="text" id="searchInput" onkeyup="searchPerson()">
+    <div id="searchResults"></div>
+
+    <script>
+        function searchPerson() {
+            var input = document.getElementById("searchInput").value.toUpperCase();
+            var resultsDiv = document.getElementById("searchResults");
+
+            resultsDiv.innerHTML = ""; // Clear previous results
+
+            // Send a request to the server and handle the response
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var persons = JSON.parse(xhr.responseText);
+
+                    persons.forEach(function(person) {
+                        var resultElement = document.createElement("div");
+                        resultElement.innerHTML = "Name: " + person.name + ", Location: " + person.location + ", Age: " + person.age;
+                        resultsDiv.appendChild(resultElement);
+                    });
+                }
+            };
+
+            xhr.open("GET", "/api/search?filter=" + input, true);
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
